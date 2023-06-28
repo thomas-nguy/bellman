@@ -966,6 +966,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
         let coset_factor = E::Fr::multiplicative_generator();
 
         let mut t_poly = {
+            println!("try drain");
             let gate = all_gates.drain(0..1).into_iter().next().unwrap();
             println!("34");
             assert!(<Self as ConstraintSystem<E>>::MainGate::default().into_internal() == gate);
@@ -975,7 +976,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
             challenges_slice = rest;
 
             let input_values = self.input_assingments.clone();
-
+            println!("try contribute_into_quotient_for_public_inputs");
             let mut t = gate.contribute_into_quotient_for_public_inputs(
                 required_domain_size,
                 &input_values,
@@ -991,6 +992,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
                 // we have to multiply by the masking poly (selector)
                 let key = PolyIdentifier::GateSelector(gate.name());
                 let monomial_selector = monomials_storage.gate_selectors.get(&key).unwrap().as_ref();
+                println!("try bitreversed_lde_using_bitreversed_ntt");
                 let selector_lde = monomial_selector.clone_padded_to_domain()?.bitreversed_lde_using_bitreversed_ntt(
                     &worker, 
                     lde_factor, 
@@ -998,21 +1000,26 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
                     &coset_factor
                 )?;
 
+                println!("try mul_assign");
                 t.mul_assign(&worker, &selector_lde);
+                println!("try drop");
                 drop(selector_lde);
             }
 
             t
         };
 
+        println!("34");
         let non_main_gates = all_gates;
 
         for gate in non_main_gates.into_iter() {
             println!("35");
+            println!("gate loop");
             let num_challenges = gate.num_quotient_terms();
             let (for_gate, rest) = challenges_slice.split_at(num_challenges);
             challenges_slice = rest;
 
+            println!("try contribute_into_quotient");
             let mut contribution = gate.contribute_into_quotient(
                 required_domain_size,
                 &mut ldes_storage,
@@ -1027,6 +1034,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
                 // we have to multiply by the masking poly (selector)
                 let key = PolyIdentifier::GateSelector(gate.name());
                 let monomial_selector = monomials_storage.gate_selectors.get(&key).unwrap().as_ref();
+                println!("try bitreversed_lde_using_bitreversed_ntt");
                 let selector_lde = monomial_selector.clone_padded_to_domain()?.bitreversed_lde_using_bitreversed_ntt(
                     &worker, 
                     lde_factor, 
@@ -1034,25 +1042,30 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
                     &coset_factor
                 )?;
 
+                println!("mul asign");
                 contribution.mul_assign(&worker, &selector_lde);
+                println!("drop");
                 drop(selector_lde);
             }
 
+            println!("add_assign");
             t_poly.add_assign(&worker, &contribution);
         }
-
         println!("36");
+        println!("assert");
         assert_eq!(challenges_slice.len(), 0);
 
-        // println!("Power of alpha for a start of normal permutation argument = {}", total_powers_of_alpha_for_gates);
+        println!("Power of alpha for a start of normal permutation argument = {}", total_powers_of_alpha_for_gates);
 
         // perform copy-permutation argument
 
         // we precompute L_{0} here cause it's necessary for both copy-permutation and lookup permutation
 
         // z(omega^0) - 1 == 0
+        println!("try calculate_lagrange_poly");
         let l_0 = calculate_lagrange_poly::<E::Fr>(&worker, required_domain_size.next_power_of_two(), 0)?;
 
+        println!("bitreversed_lde_using_bitreversed_ntt");
         let l_0_coset_lde_bitreversed = l_0.bitreversed_lde_using_bitreversed_ntt(
             &worker, 
             lde_factor, 
@@ -1065,6 +1078,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
             // now compute the permutation argument
 
             // bump alpha
+            println!("mul assign");
             current_alpha.mul_assign(&alpha);
             let alpha_0 = current_alpha;
 
@@ -1175,6 +1189,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
 
         // add contribution from grand product for loopup polys if there is one
 
+        println!("as");
         let mut lookup_grand_product_alphas = None;
         if let Some(z_poly_in_monomial_form) = lookup_z_poly_in_monomial_form.as_ref() {
             println!("38");
