@@ -967,6 +967,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
 
         let mut t_poly = {
             let gate = all_gates.drain(0..1).into_iter().next().unwrap();
+            println!("34");
             assert!(<Self as ConstraintSystem<E>>::MainGate::default().into_internal() == gate);
             let gate = <Self as ConstraintSystem<E>>::MainGate::default();
             let num_challenges = gate.num_quotient_terms();
@@ -1007,6 +1008,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
         let non_main_gates = all_gates;
 
         for gate in non_main_gates.into_iter() {
+            println!("35");
             let num_challenges = gate.num_quotient_terms();
             let (for_gate, rest) = challenges_slice.split_at(num_challenges);
             challenges_slice = rest;
@@ -1039,6 +1041,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
             t_poly.add_assign(&worker, &contribution);
         }
 
+        println!("36");
         assert_eq!(challenges_slice.len(), 0);
 
         // println!("Power of alpha for a start of normal permutation argument = {}", total_powers_of_alpha_for_gates);
@@ -1174,6 +1177,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
 
         let mut lookup_grand_product_alphas = None;
         if let Some(z_poly_in_monomial_form) = lookup_z_poly_in_monomial_form.as_ref() {
+            println!("38");
             let beta_for_lookup_permutation = beta_for_lookup.unwrap();
             let gamma_for_lookup_permutation = gamma_for_lookup.unwrap();
 
@@ -1447,7 +1451,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
 
             proof.quotient_poly_parts_commitments.push(commitment);
         }
-
+        println!("a");
         // draw opening point
         let z = transcript.get_challenge();
 
@@ -1625,7 +1629,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
         let mut challenges_slice = &powers_of_alpha_for_gates[..];
 
         let mut all_gates = self.sorted_gates.clone();
-
+        println!("b");
         let mut r_poly = {
             let gate = all_gates.drain(0..1).into_iter().next().unwrap();
             println!("40");
