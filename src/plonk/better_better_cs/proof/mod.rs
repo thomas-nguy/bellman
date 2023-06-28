@@ -302,7 +302,9 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
         mon_crs: &Crs<E, CrsForMonomialForm>,
         transcript_params: Option<T::InitializationParameters>,
     ) -> Result<Proof<E, C>, SynthesisError> {
+        println!("1");
         assert!(S::PRODUCE_WITNESS);
+        println!("2");
         assert!(self.is_finalized);
 
         let mut transcript = if let Some(params) = transcript_params {
@@ -328,6 +330,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
         let mut values_storage = self.make_assembled_poly_storage(worker, true)?;
 
         let required_domain_size = self.n() + 1;
+        println!("3");
         assert!(required_domain_size.is_power_of_two());
 
         let omegas_bitreversed = BitReversedOmegas::<E::Fr>::new_for_domain_size(required_domain_size);
@@ -336,6 +339,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
         // if we simultaneously produce setup then grab permutation polys in values forms
         if S::PRODUCE_SETUP {
             let permutation_polys = self.make_permutations(&worker)?;
+            println!("4");
             assert_eq!(permutation_polys.len(), num_state_polys);
 
             for (idx, poly) in permutation_polys.into_iter().enumerate() {
@@ -418,9 +422,11 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
 
             let (selector_poly, table_type_mononial, table_type_values) = if S::PRODUCE_SETUP {
                 let selector_for_lookup_values = self.calculate_lookup_selector_values()?;
+                println!("5");
                 assert!((selector_for_lookup_values.len() + 1).is_power_of_two());
                 let table_type_values = self.calculate_table_type_values()?;
 
+                println!("6");
                 assert_eq!(selector_for_lookup_values.len(), table_type_values.len());
 
                 let table_type_poly_monomial = {
@@ -463,9 +469,12 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
                 (selector_poly, table_type_poly, table_type_values)
             };
 
+            println!("7");
             assert!((table_type_values.len() + 1).is_power_of_two());
             let witness_len = required_domain_size - 1;
+            println!("8");
             assert!((witness_len + 1).is_power_of_two());
+            println!("9");
             assert_eq!(table_type_values.len(), witness_len);
 
             let f_poly_values_aggregated = {
@@ -473,10 +482,12 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
                     let masked_entries_using_bookkept_bitmasks = self.calculate_masked_lookup_entries(&values_storage)?;
 
                     let typical_len = masked_entries_using_bookkept_bitmasks[0].len();
+                    println!("10");
                     assert!((typical_len+1).is_power_of_two());
 
                     masked_entries_using_bookkept_bitmasks
                 } else {
+                    println!("11");
                     assert!(S::PRODUCE_WITNESS);
                     // let selector_values = PolynomialProxy::from_owned(selector_poly.as_ref().clone().fft(&worker));
                     let selector_values = selector_poly.as_ref().clone().fft_using_bitreversed_ntt(
@@ -493,10 +504,13 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
                     )?
                 };
 
+                println!("13");
                 assert_eq!(table_type_values.len(), table_contributions_values[0].len());
-            
+
+                println!("14");
                 assert_eq!(table_contributions_values.len(), 3);
 
+                println!("15");
                 assert_eq!(witness_len, table_contributions_values[0].len());
 
                 let mut f_poly_values_aggregated = table_contributions_values.drain(0..1).collect::<Vec<_>>().pop().unwrap();
@@ -519,6 +533,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
             let (t_poly_values, t_poly_values_shifted, t_poly_monomial) = if S::PRODUCE_SETUP {
                 // these are unsorted rows of lookup tables
                 let mut t_poly_ends = self.calculate_t_polynomial_values_for_single_application_tables()?;
+                println!("16");
                 assert_eq!(t_poly_ends.len(), 4);
 
                 let mut t_poly_values_aggregated = t_poly_ends.drain(0..1).collect::<Vec<_>>().pop().unwrap();
@@ -537,6 +552,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
                 full_t_poly_values[copy_start..].copy_from_slice(&t_poly_values_aggregated);
                 full_t_poly_values_shifted[(copy_start - 1)..(witness_len-1)].copy_from_slice(&t_poly_values_aggregated);
 
+                println!("18");
                 assert!(full_t_poly_values[0].is_zero());
 
                 let t_poly_monomial = {
@@ -569,6 +585,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
                     current.mul_assign(&eta);
                 }
 
+                println!("19");
                 assert!(t_poly_values_monomial_aggregated.size().is_power_of_two());
 
                 let mut t_poly_values = t_poly_values_monomial_aggregated.clone().fft_using_bitreversed_ntt(
@@ -576,6 +593,8 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
                     &omegas_bitreversed,
                     &E::Fr::one()
                 )?;
+
+                println!("20");
                 assert!(t_poly_values.as_ref().last().unwrap().is_zero());
                 assert!(t_poly_values.size().is_power_of_two());
 
@@ -586,11 +605,14 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
 
                 let mut t_values_shifted_coeffs = t_poly_values.clone().into_coeffs();
                 let _last = t_poly_values.pop_last()?;
+
+                println!("21");
                 assert!(_last.is_zero());
                 let _: Vec<_> = t_values_shifted_coeffs.drain(0..1).collect();
 
                 let t_poly_values_shifted = Polynomial::from_values_unpadded(t_values_shifted_coeffs)?;
 
+                println!("22");
                 assert_eq!(witness_len, t_poly_values.size());
                 assert_eq!(witness_len, t_poly_values_shifted.size());
 
@@ -612,6 +634,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
                 full_s_poly_values[sorted_copy_start..].copy_from_slice(&s_poly_values_aggregated);
                 full_s_poly_values_shifted[(sorted_copy_start - 1)..(witness_len-1)].copy_from_slice(&s_poly_values_aggregated);
 
+                println!("23");
                 assert!(full_s_poly_values[0].is_zero());
 
                 let s_poly_monomial = {
@@ -732,6 +755,8 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
         }
 
         let z_den = {
+
+            println!("26");
             assert_eq!(
                 permutation_polynomials_values_of_size_n_minus_one.len(), 
                 grand_products_protos_with_gamma.len()
@@ -760,8 +785,11 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
         let z = z_num.calculate_shifted_grand_product(&worker)?;
         drop(z_num);
 
+
+        println!("27");
         assert!(z.size().is_power_of_two());
 
+        println!("28");
         assert!(z.as_ref()[0] == E::Fr::one());
 
         let copy_permutation_z_in_monomial_form = z.ifft_using_bitreversed_ntt(
@@ -848,9 +876,13 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
             let z = z_num.calculate_shifted_grand_product(&worker)?;
             drop(z_num);
 
+            println!("29");
             assert!(z.size().is_power_of_two());
 
+            println!("30");
             assert_eq!(z.as_ref()[0], E::Fr::one());
+
+            println!("31");
             assert_eq!(*z.as_ref().last().unwrap(), expected);
 
             // let t_poly_monomial = t_poly_unpadded_values.as_ref().clone_padded_to_domain()?.ifft_using_bitreversed_ntt(
@@ -912,6 +944,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
             powers_of_alpha_for_gates.push(current_alpha);
         }
 
+        println!("32");
         assert_eq!(powers_of_alpha_for_gates.len(), total_powers_of_alpha_for_gates);
 
         let mut all_gates = self.sorted_gates.clone();
@@ -927,6 +960,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
             }
         }
 
+        println!("33");
         assert!(lde_factor <= 4);
 
         let coset_factor = E::Fr::multiplicative_generator();
@@ -1038,6 +1072,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
                 &coset_factor
             )?;
 
+            println!("37");
             assert!(z_coset_lde_bitreversed.size() == required_domain_size*lde_factor);
 
             let z_shifted_coset_lde_bitreversed = z_coset_lde_bitreversed.clone_shifted_assuming_bitreversed(
@@ -1593,6 +1628,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
 
         let mut r_poly = {
             let gate = all_gates.drain(0..1).into_iter().next().unwrap();
+            println!("40");
             assert!(gate.benefits_from_linearization(), "main gate is expected to benefit from linearization!");
             assert!(<Self as ConstraintSystem<E>>::MainGate::default().into_internal() == gate);
             let gate = <Self as ConstraintSystem<E>>::MainGate::default();
@@ -1655,6 +1691,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
                 }
             }
 
+            println!("50");
             assert!(selectors_it.next().is_none());
             assert_eq!(challenges_slice.len(), 0);
 
@@ -1688,6 +1725,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
                 factor.mul_assign(&t);
             }
 
+            println!("51");
             assert!(non_residues_iterator.next().is_none());
 
             r_poly.add_assign_scaled(&worker, &copy_permutation_z_in_monomial_form, &factor);
