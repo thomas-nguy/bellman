@@ -1,4 +1,5 @@
 pub fn log2_floor(num: usize) -> u32 {
+    println!("num {:?}", num);
     assert!(num > 0);
 
     let mut pow = 0;
