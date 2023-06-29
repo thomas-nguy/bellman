@@ -462,11 +462,14 @@ pub fn ensure_in_map_or_create<'a, 'b, E: Engine>(
     monomials_map: & AssembledPolynomialStorageForMonomialForms<'a, E>,
     ldes_map: &mut AssembledPolynomialStorage<'b, E>
 ) -> Result<(), SynthesisError> {
-    assert!(ldes_map.is_bitreversed);
-    assert_eq!(ldes_map.lde_factor, lde_factor);
+    println!("ensure_in_map_or_create");
+    assert!(ldes_map.is_bitreversed, "1");
+    assert_eq!(ldes_map.lde_factor, lde_factor, "2");
 
     let (key, dilation_value) = key_with_dilation.into_id_and_raw_dilation();
 
+    println!("key {:?}",key);
+    println!("value {:?}",dilation_value);
     let mut contains_in_scratch_or_maps = false;
 
     if dilation_value == 0 {
@@ -590,12 +593,14 @@ pub fn ensure_in_map_or_create<'a, 'b, E: Engine>(
                     }
                 }
             } else {
+                println!("ldes_map.scratch_space.insert");
                 ldes_map.scratch_space.insert(key_with_dilation, proxy);
             };
 
             done = true;
         }
 
+        println!("done");
         assert!(done);
     }
 

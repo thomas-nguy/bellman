@@ -465,6 +465,7 @@ impl<E: Engine> MainGate<E> for SelectorOptimizedWidth4MainGateWithDNext {
         for &p in <Self as GateInternal<E>>::all_queried_polynomials(&self).into_iter() {
             // skip public constants poly (was used in public inputs)
             if p == PolynomialInConstraint::from_id(PolyIdentifier::GateSetupPolynomial(name, Self::CONSTANT_TERM_COEFF_INDEX)) {
+                println!("continue");
                 continue;
             }
             ensure_in_map_or_create(&worker, 
