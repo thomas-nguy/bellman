@@ -2389,24 +2389,21 @@ impl<F: PrimeField> Polynomial<F, Coefficients> {
         let self_coeffs_ref = &self.coeffs;
 
         // copy
-        println!("try worker");
-        worker.scope(range.len(), |scope, chunk| {
-            for coset_idx in range.chunks(chunk) {
-                let r = unsafe {&mut *r};
-                scope.spawn(move |_| {
-                    for coset_idx in coset_idx.iter() {
-                        let start = current_size * coset_idx;
-                        println!("start {:?}", start);
-                        let end = start + current_size;
-                        println!("end {:?}", end);
-                        let copy_start_pointer: *mut F = r[start..end].as_mut_ptr();
+        println!("try worker factor {:?}", factor);
+        let chunk = factor/4;
+        for coset_idx in range.chunks(chunk) {
+            let r = unsafe {&mut *r};
+            for coset_idx in coset_idx.iter() {
+                let start = current_size * coset_idx;
+                println!("start {:?}", start);
+                let end = start + current_size;
+                println!("end {:?}", end);
+                let copy_start_pointer: *mut F = r[start..end].as_mut_ptr();
 
-                        println!("copy {:?}", self_coeffs_ref.len());
-                        unsafe { std::ptr::copy(self_coeffs_ref.as_ptr(), copy_start_pointer, current_size) };
-                    }
-                });
+                println!("copy {:?}", self_coeffs_ref.len());
+                unsafe { std::ptr::copy(self_coeffs_ref.as_ptr(), copy_start_pointer, current_size) };
             }
-        });
+        }
         println!("end worker");
         let to_spawn = factor;
         let coset_size = current_size;
