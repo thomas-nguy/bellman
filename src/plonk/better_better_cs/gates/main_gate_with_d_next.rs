@@ -409,18 +409,19 @@ impl<E: Engine> MainGate<E> for Width4MainGateWithDNext {
         assert_eq!(challenges.len(), <Self as GateInternal<E>>::num_quotient_terms(&self));
 
         let lde_factor = poly_storage.lde_factor;
-        assert!(lde_factor.is_power_of_two());
+        assert!(lde_factor.is_power_of_two(), "lde_factor.is_power_of_two()");
 
-        assert!(poly_storage.is_bitreversed);
-
+        assert!(poly_storage.is_bitreversed, "poly_storage.is_bitreversed");
+        println!("guu");
         let coset_factor = E::Fr::multiplicative_generator();
         // Include the public inputs
         let mut inputs_poly = Polynomial::<E::Fr, Values>::new_for_size(domain_size)?;
+        println!("785858");
         for (idx, &input) in public_inputs.iter().enumerate() {
             inputs_poly.as_mut()[idx] = input;
         }
         // go into monomial form
-
+        println!("bbdf");
         let mut inputs_poly = inputs_poly.ifft_using_bitreversed_ntt(&worker, omegas_inv_bitreversed, &E::Fr::one())?;
 
         // add constants selectors vector
@@ -439,6 +440,7 @@ impl<E: Engine> MainGate<E> for Width4MainGateWithDNext {
             &coset_factor
         )?;
 
+        println!("ppoo");
         for &p in <Self as GateInternal<E>>::all_queried_polynomials(&self).into_iter() {
             // skip public constants poly (was used in public inputs)
             if p == PolynomialInConstraint::from_id(PolyIdentifier::GateSetupPolynomial(name, 5)) {
@@ -455,6 +457,7 @@ impl<E: Engine> MainGate<E> for Width4MainGateWithDNext {
             )?;
         }
 
+        println!("pooopoo");
         let ldes_storage = &*poly_storage;
 
         // Q_A * A

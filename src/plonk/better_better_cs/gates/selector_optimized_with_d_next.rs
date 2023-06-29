@@ -427,14 +427,15 @@ impl<E: Engine> MainGate<E> for SelectorOptimizedWidth4MainGateWithDNext {
         omegas_inv_bitreversed: &OmegasInvBitreversed<E::Fr>,
         worker: &Worker
     ) -> Result<Polynomial<E::Fr, Values>, SynthesisError> {
-        assert!(domain_size.is_power_of_two());
-        assert_eq!(challenges.len(), <Self as GateInternal<E>>::num_quotient_terms(&self));
+        println!("dex");
+        assert!(domain_size.is_power_of_two(), "domain_size.is_power_of_two()");
+        assert_eq!(challenges.len(), <Self as GateInternal<E>>::num_quotient_terms(&self), "challenge.len");
 
         let lde_factor = poly_storage.lde_factor;
-        assert!(lde_factor.is_power_of_two());
+        assert!(lde_factor.is_power_of_two(), "lde_factor.is_power_of_two()");
 
-        assert!(poly_storage.is_bitreversed);
-
+        assert!(poly_storage.is_bitreversed, "poly_storage.is_bitreversed");
+        println!("2sdawdwa9");
         let coset_factor = E::Fr::multiplicative_generator();
         // Include the public inputs
         let mut inputs_poly = Polynomial::<E::Fr, Values>::new_for_size(domain_size)?;
@@ -447,7 +448,7 @@ impl<E: Engine> MainGate<E> for SelectorOptimizedWidth4MainGateWithDNext {
 
         // add constants selectors vector
         let name = <Self as GateInternal<E>>::name(&self);
-
+        println!("saa");
         let key = PolyIdentifier::GateSetupPolynomial(name, Self::CONSTANT_TERM_COEFF_INDEX);
         let constants_poly_ref = monomials_storage.get_poly(key);
         inputs_poly.add_assign(&worker, constants_poly_ref);
@@ -460,7 +461,7 @@ impl<E: Engine> MainGate<E> for SelectorOptimizedWidth4MainGateWithDNext {
             omegas_bitreversed, 
             &coset_factor
         )?;
-
+        println!("dawdawdaw");
         for &p in <Self as GateInternal<E>>::all_queried_polynomials(&self).into_iter() {
             // skip public constants poly (was used in public inputs)
             if p == PolynomialInConstraint::from_id(PolyIdentifier::GateSetupPolynomial(name, Self::CONSTANT_TERM_COEFF_INDEX)) {
@@ -476,7 +477,7 @@ impl<E: Engine> MainGate<E> for SelectorOptimizedWidth4MainGateWithDNext {
                 poly_storage
             )?;
         }
-
+        println!("dawawdawdawdc");
         let ldes_storage = &*poly_storage;
 
         // Q_A * A
@@ -493,7 +494,7 @@ impl<E: Engine> MainGate<E> for SelectorOptimizedWidth4MainGateWithDNext {
         t_1.add_assign(&worker, &tmp);
         drop(q_a_ref);
         drop(a_ref);
-
+        println!("dawdawdwad");
         // Q_B * B
         let q_b_ref = get_from_map_unchecked(
             PolynomialInConstraint::from_id(PolyIdentifier::GateSetupPolynomial(name, 1)),
