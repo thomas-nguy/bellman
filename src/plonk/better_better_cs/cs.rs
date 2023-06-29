@@ -478,6 +478,7 @@ pub fn ensure_in_map_or_create<'a, 'b, E: Engine>(
                 if ldes_map.state_map.get(&k).is_some() {
                     contains_in_scratch_or_maps = true;
                 }
+                println!("contain {:?}", contains_in_scratch_or_maps);
             },
             k @ PolyIdentifier::WitnessPolynomial(..) => {
                 if ldes_map.witness_map.get(&k).is_some() {
@@ -504,6 +505,7 @@ pub fn ensure_in_map_or_create<'a, 'b, E: Engine>(
         // but now need to just rotate
         let lde_without_dilation = match key {
             k @ PolyIdentifier::VariablesPolynomial(..) => {
+                println!("try get ");
                 ldes_map.state_map.get(&k)
             },
             k @ PolyIdentifier::WitnessPolynomial(..) => {
@@ -517,9 +519,11 @@ pub fn ensure_in_map_or_create<'a, 'b, E: Engine>(
             }
         };
 
+        println!("get {:?}",lde_without_dilation.is_some() );
         let mut done = false;
 
         let rotated = if let Some(lde) = lde_without_dilation.as_ref() {
+            println!("yes");
             let rotation_factor = dilation_value * lde_factor;
             let f = lde.as_ref().clone_shifted_assuming_bitreversed(rotation_factor, worker)?;
             drop(lde);
@@ -555,6 +559,8 @@ pub fn ensure_in_map_or_create<'a, 'b, E: Engine>(
                     unreachable!();
                 }
             };
+
+            println!("monomial {:?}", monomial.exp);
         
             let lde = monomial.clone().bitreversed_lde_using_bitreversed_ntt(
                 &worker, 
@@ -580,6 +586,7 @@ pub fn ensure_in_map_or_create<'a, 'b, E: Engine>(
             if dilation_value == 0 {
                 match key {
                     k @ PolyIdentifier::VariablesPolynomial(..) => {
+                        println!("try insert");
                         ldes_map.state_map.insert(k, proxy);
                     },
                     k @ PolyIdentifier::WitnessPolynomial(..) => {
