@@ -561,16 +561,19 @@ pub fn ensure_in_map_or_create<'a, 'b, E: Engine>(
             };
 
             println!("monomial {:?}", monomial.exp);
-        
+
+            println!("try bitreversed_lde_using_bitreversed_ntt");
             let lde = monomial.clone().bitreversed_lde_using_bitreversed_ntt(
                 &worker, 
                 lde_factor, 
                 omegas_bitreversed, 
                 &coset_factor
             )?;
-        
+
+            println!("dilation value {:?}", dilation_value);
             let final_lde = if dilation_value != 0 {
                 let rotation_factor = dilation_value * lde_factor;
+                println!("try clone_shifted_assuming_bitreversed");
                 let f = lde.clone_shifted_assuming_bitreversed(rotation_factor, worker)?;
                 drop(lde);
         
@@ -583,6 +586,7 @@ pub fn ensure_in_map_or_create<'a, 'b, E: Engine>(
 
             let proxy = PolynomialProxy::from_owned(final_lde);
 
+            println!("dilation value {:?}", dilation_value);
             if dilation_value == 0 {
                 match key {
                     k @ PolyIdentifier::VariablesPolynomial(..) => {

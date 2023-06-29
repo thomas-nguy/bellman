@@ -2113,17 +2113,23 @@ impl<F: PrimeField> Polynomial<F, Values> {
     #[track_caller]
     pub fn clone_shifted_assuming_bitreversed(&self, by: usize, worker: &Worker) -> Result<Self, SynthesisError> {
         let len = self.coeffs.len();
+        println!("len {:?}", len);
+        println!("by {:?}", by);
         assert!(by < len);
         let mut extended_clone = Vec::with_capacity(len + by);
+        println!("tryextend_from_slice ");
         extended_clone.extend_from_slice(&self.coeffs);
         let mut tmp = Self::from_values(extended_clone)?;
+        println!("try bitreverse_enumeration ");
         tmp.bitreverse_enumeration(&worker);
 
         let mut coeffs = tmp.into_coeffs();
         let tmp: Vec<_> = coeffs.drain(..by).collect();
+        println!("try extend ");
         coeffs.extend(tmp);
 
         let mut tmp = Self::from_values(coeffs)?;
+        println!("try bitreverse_enumeration ");
         tmp.bitreverse_enumeration(&worker);
 
         Ok(tmp)
@@ -2330,7 +2336,10 @@ impl<F: PrimeField> Polynomial<F, Coefficients> {
         precomputed_omegas: &P,
         coset_factor: &F
     ) -> Result<Polynomial<F, Values>, SynthesisError> {
+        println!("asset {:?}", self.coeffs.len().is_power_of_two());
         debug_assert!(self.coeffs.len().is_power_of_two());
+        println!("asset {:?}", self.size());
+        println!("asset {:?}", precomputed_omegas.domain_size());
         debug_assert_eq!(self.size(), precomputed_omegas.domain_size());
         
         if factor == 1 {
@@ -2338,6 +2347,8 @@ impl<F: PrimeField> Polynomial<F, Coefficients> {
         }
 
         let num_cpus = worker.cpus;
+        println!("num_cpus {:?}", num_cpus);
+        println!("factor {:?}", factor);
         let num_cpus_hint = if num_cpus <= factor {
             Some(1)
         } else {
@@ -2356,6 +2367,7 @@ impl<F: PrimeField> Polynomial<F, Coefficients> {
             Some(threads_per_coset)
         };
 
+        println!("assert {:?}", factor.is_power_of_two());
         assert!(factor.is_power_of_two());
         let current_size = self.coeffs.len();
         let new_size = self.coeffs.len() * factor;
@@ -2377,7 +2389,7 @@ impl<F: PrimeField> Polynomial<F, Coefficients> {
         let self_coeffs_ref = &self.coeffs;
 
         // copy
-
+        println!("try worker");
         worker.scope(range.len(), |scope, chunk| {
             for coset_idx in range.chunks(chunk) {
                 let r = unsafe {&mut *r};
@@ -2409,6 +2421,7 @@ impl<F: PrimeField> Polynomial<F, Coefficients> {
         // elements for coset factor of omega^0 = 1 will need to be placed first (00 top bits, bitreversed 00)
         // elements for coset factor of omega^1 will need to be placed after the first half (10 top bits, bitreversed 01)
 
+        println!("try worker2");
         worker.scope(0, |scope, _| {
             for coset_idx in 0..to_spawn {
                 let r = unsafe {&mut *r};
@@ -2427,6 +2440,7 @@ impl<F: PrimeField> Polynomial<F, Coefficients> {
             }
         });
 
+        println!("end");
         Polynomial::from_values(result)
     }
 
