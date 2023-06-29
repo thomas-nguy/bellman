@@ -2401,13 +2401,13 @@ impl<F: PrimeField> Polynomial<F, Coefficients> {
                         println!("end {:?}", end);
                         let copy_start_pointer: *mut F = r[start..end].as_mut_ptr();
 
-                        println!("copy_nonoverlapping {:?}", self_coeffs_ref.len());
-                        unsafe { std::ptr::copy_nonoverlapping(self_coeffs_ref.as_ptr(), copy_start_pointer, current_size) };
+                        println!("copy {:?}", self_coeffs_ref.len());
+                        unsafe { std::ptr::copy(self_coeffs_ref.as_ptr(), copy_start_pointer, current_size) };
                     }
                 });
             }
         });
-
+        println!("end worker");
         let to_spawn = factor;
         let coset_size = current_size;
 
