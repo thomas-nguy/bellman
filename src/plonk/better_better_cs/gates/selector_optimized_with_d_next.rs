@@ -430,7 +430,7 @@ impl<E: Engine> MainGate<E> for SelectorOptimizedWidth4MainGateWithDNext {
         println!("dex");
         assert!(domain_size.is_power_of_two(), "domain_size.is_power_of_two()");
         assert_eq!(challenges.len(), <Self as GateInternal<E>>::num_quotient_terms(&self), "challenge.len");
-
+        println!("sdf dex");
         let lde_factor = poly_storage.lde_factor;
         assert!(lde_factor.is_power_of_two(), "lde_factor.is_power_of_two()");
 

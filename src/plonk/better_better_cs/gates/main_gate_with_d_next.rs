@@ -405,12 +405,13 @@ impl<E: Engine> MainGate<E> for Width4MainGateWithDNext {
         omegas_inv_bitreversed: &OmegasInvBitreversed<E::Fr>,
         worker: &Worker
     ) -> Result<Polynomial<E::Fr, Values>, SynthesisError> {
-        assert!(domain_size.is_power_of_two());
-        assert_eq!(challenges.len(), <Self as GateInternal<E>>::num_quotient_terms(&self));
-
+        println!("main gate");
+        assert!(domain_size.is_power_of_two(), "pow2");
+        assert_eq!(challenges.len(), <Self as GateInternal<E>>::num_quotient_terms(&self), "challenge len");
+        println!("main w");
         let lde_factor = poly_storage.lde_factor;
         assert!(lde_factor.is_power_of_two(), "lde_factor.is_power_of_two()");
-
+        println!("main p");
         assert!(poly_storage.is_bitreversed, "poly_storage.is_bitreversed");
         println!("guu");
         let coset_factor = E::Fr::multiplicative_generator();
