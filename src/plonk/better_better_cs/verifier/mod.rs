@@ -93,8 +93,9 @@ pub fn aggregate<E: Engine, C: Circuit<E>, T: Transcript<E::Fr>>(
     if vk.total_lookup_entries_length > 0 {
         println!("get challenge");
         eta = transcript.get_challenge();
-
+        println!("proof {:?}", proof.n);
         let commitment = proof.lookup_s_poly_commitment.as_ref().ok_or(SynthesisError::AssignmentMissing)?;
+        println!("ex?");
         commit_point_as_xy::<E, T>(&mut transcript, commitment);
     }
     println!("beta_for_copy_permutation");

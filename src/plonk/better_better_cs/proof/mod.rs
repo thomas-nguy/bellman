@@ -666,6 +666,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
                 &s_poly_commitment
             );
 
+            println!("proof.lookup_s_poly_commitment {:?}", s_poly_commitment.is_zero());
             proof.lookup_s_poly_commitment = Some(s_poly_commitment);
 
             let data = data_structures::LookupDataHolder::<E> {
