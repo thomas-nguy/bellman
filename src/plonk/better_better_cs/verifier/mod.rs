@@ -23,13 +23,15 @@ pub fn verify<E: Engine, C: Circuit<E>, T: Transcript<E::Fr>>(
     proof: &Proof<E, C>,
     transcript_params: Option<T::InitializationParameters>,
 ) -> Result<bool, SynthesisError> {
+    println!("plonk verify");
+    println!("verif key {:?}", vk);
+    println!("transcript_params {:?}", transcript_params.is_some());
     let ((pair_with_generator, pair_with_x), success) = aggregate::<_, _, T>(vk, proof, transcript_params)?;
     if !success {
         return Ok(false)
     }
-
+    println!("success");
     use crate::pairing::CurveAffine;
-
     let valid = E::final_exponentiation(
         &E::miller_loop(&[
             (&pair_with_generator.prepare(), &vk.g2_elements[0].prepare()),
