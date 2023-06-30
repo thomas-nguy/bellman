@@ -59,6 +59,7 @@ pub fn aggregate<E: Engine, C: Circuit<E>, T: Transcript<E::Fr>>(
     proof: &Proof<E, C>,
     transcript_params: Option<T::InitializationParameters>,
 ) -> Result<((E::G1Affine, E::G1Affine), bool), SynthesisError> {
+    println!("start aggregate");
     let mut transcript = if let Some(params) = transcript_params {
         T::new_from_params(params)
     } else {
@@ -68,6 +69,7 @@ pub fn aggregate<E: Engine, C: Circuit<E>, T: Transcript<E::Fr>>(
     let sorted_gates = C::declare_used_gates()?;
     let num_different_gates = sorted_gates.len();
 
+    println!("start aggregate");
     safe_assert((vk.n+1).is_power_of_two())?;
     let required_domain_size = vk.n.next_power_of_two();
 
@@ -89,13 +91,15 @@ pub fn aggregate<E: Engine, C: Circuit<E>, T: Transcript<E::Fr>>(
 
     let mut eta = E::Fr::zero();
     if vk.total_lookup_entries_length > 0 {
+        println!("get challenge");
         eta = transcript.get_challenge();
 
         let commitment = proof.lookup_s_poly_commitment.as_ref().ok_or(SynthesisError::AssignmentMissing)?;
         commit_point_as_xy::<E, T>(&mut transcript, commitment);
     }
-
+    println!("beta_for_copy_permutation");
     let beta_for_copy_permutation = transcript.get_challenge();
+    println!("gamma_for_copy_permutation");
     let gamma_for_copy_permutation = transcript.get_challenge();
 
     let commitment = &proof.copy_permutation_grand_product_commitment;
@@ -105,6 +109,7 @@ pub fn aggregate<E: Engine, C: Circuit<E>, T: Transcript<E::Fr>>(
     let mut gamma_for_lookup = None;
 
     if vk.total_lookup_entries_length > 0 {
+        println!("get challenge");
         let beta_for_lookup_permutation = transcript.get_challenge();
         let gamma_for_lookup_permutation = transcript.get_challenge();
 
@@ -169,6 +174,7 @@ pub fn aggregate<E: Engine, C: Circuit<E>, T: Transcript<E::Fr>>(
         commit_point_as_xy::<E, T>(&mut transcript, commitment);
     }
 
+    println!("z");
     let z = transcript.get_challenge();
 
     let z_in_domain_size = z.pow(&[required_domain_size as u64]);
@@ -266,6 +272,7 @@ pub fn aggregate<E: Engine, C: Circuit<E>, T: Transcript<E::Fr>>(
         }
     }
 
+    println!("safe assert");
     safe_assert(state_polys_openings_at_z_iter.next().is_none())?;
     safe_assert(state_polys_openings_at_dilations_iter.next().is_none())?;
 
@@ -309,7 +316,7 @@ pub fn aggregate<E: Engine, C: Circuit<E>, T: Transcript<E::Fr>>(
             query_values_map.insert(key, value);
         }
     }
-
+    println!("p");
     safe_assert(witness_polys_openings_at_z_iter.next().is_none())?;
     safe_assert(witness_polys_openings_at_dilations_iter.next().is_none())?;
 
@@ -420,7 +427,7 @@ pub fn aggregate<E: Engine, C: Circuit<E>, T: Transcript<E::Fr>>(
 
     // linearization is done, now perform sanity check
     // this is effectively a verification procedure
-
+    println!("a");
     let mut lookup_query = None;
 
     {
@@ -504,7 +511,7 @@ pub fn aggregate<E: Engine, C: Circuit<E>, T: Transcript<E::Fr>>(
 
             t_num_on_full_domain.sub_assign(&l_0_at_z);
         }
-
+        println!("k");
         // and if exists - grand product for lookup permutation
         {
             if vk.total_lookup_entries_length > 0 {
@@ -605,7 +612,7 @@ pub fn aggregate<E: Engine, C: Circuit<E>, T: Transcript<E::Fr>>(
             &setup_commitments_storage,
             for_gate,
         )?;
-
+        println!("f");
         let mut selectors_it = selector_values.clone().into_iter();
 
         if num_different_gates > 1 {
@@ -720,7 +727,7 @@ pub fn aggregate<E: Engine, C: Circuit<E>, T: Transcript<E::Fr>>(
 
             r.add_assign(&scaled);
         }
-
+        println!("3");
         // lookup grand product linearization
 
         // due to separate divisor it's not obvious if this is beneficial without some tricks
@@ -842,6 +849,7 @@ pub fn aggregate<E: Engine, C: Circuit<E>, T: Transcript<E::Fr>>(
         r.into_affine()
     };
 
+    println!("d");
     let v = transcript.get_challenge();
 
     // commit proofs
@@ -997,6 +1005,8 @@ pub fn aggregate<E: Engine, C: Circuit<E>, T: Transcript<E::Fr>>(
     pair_with_x.negate();
 
     let pair_with_generator = pair_with_generator.into_affine();
+
+    println!("end");
     
     Ok(((pair_with_generator, pair_with_x), true))
 }
