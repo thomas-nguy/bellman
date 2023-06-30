@@ -413,7 +413,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
         }
 
         let mut lookup_events = HashMap::<[E::Fr; 4], usize>::new();
-
+        println!("table len {:?}", self.tables.len());
         // step 1.5 - if there are lookup tables then draw random "eta" to linearlize over tables
         let mut lookup_data: Option<data_structures::LookupDataHolder<E>> = if self.tables.len() > 0 {
             let eta = transcript.get_challenge();
