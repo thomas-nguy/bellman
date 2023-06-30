@@ -2101,6 +2101,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
         multiopening_challenge.mul_assign(&v);
         poly_to_divide_at_z.add_assign_scaled(&worker, &r_poly, &multiopening_challenge);
 
+        println!("52");
         debug_assert_eq!(multiopening_challenge, v.pow(&[1 as u64]));
 
         // now proceed over all queries
@@ -2206,6 +2207,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
 
         let mut polys = vec![(poly_to_divide_at_z, z), (poly_to_divide_at_z_omega, z_by_omega)];
 
+        println!("53");
         worker.scope(polys.len(), |scope, chunk| {
             for p in polys.chunks_mut(chunk) {
                 scope.spawn(move |_| {
@@ -2220,12 +2222,14 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
         let open_at_z_omega = polys.pop().unwrap().0;
         let open_at_z = polys.pop().unwrap().0;
 
+        println!("commit_using_monomials");
         let opening_at_z = commit_using_monomials(
             &open_at_z, 
             &mon_crs,
             &worker
         )?;
 
+        println!("commit_using_monomials");
         let opening_at_z_omega = commit_using_monomials(
             &open_at_z_omega, 
             &mon_crs,
@@ -2235,6 +2239,7 @@ impl<E: Engine, P: PlonkConstraintSystemParams<E>, MG: MainGate<E>, S: Synthesis
         proof.opening_proof_at_z = opening_at_z;
         proof.opening_proof_at_z_omega = opening_at_z_omega;
 
+        println!("ok generating proof");
         Ok(proof)
     }
 }
